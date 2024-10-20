@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue</title>
+    <script src="https://unpkg.com/react/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            overflow: hidden;
+            touch-action: none;
+            background-color: white;
+            font-family: 'Montserrat', sans-serif;
+            user-select: none;
+        }
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .price-cents {
+            font-size: 0.5em;
+            vertical-align: baseline;
+            letter-spacing: 0.02em;
+        }
+        .cart-icon {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-custom-bg text-white min-h-screen flex flex-col">
+    <div id="app"></div>
+
+    <script type="text/javascript">
+        const products = [
+            {
+                title: "Silver Ring",
+                specs: "Specs for product 1",
+                images: ["1.jpg"],
+                price: 1230.99,
+                UUID: 202412061742-862151901239123
+            },
+            {
+                title: "Gold Necklace",
+                specs: "Specs for product 4",
+                images: ["4.jpg"],
+                price: 1516.99,
+                UUID: 202412061942-1209571935913423
+            }
+        ];
+
+const Cart = ({ cartItems, removeFromCart }) => {
+    if (Object.keys(cartItems).length === 0) {
+        return React.createElement("p", { className: "text-center" }, "Your cart is empty.");
+    }
+
+    const getTotalCost = () => {
+        return Object.values(cartItems).reduce((acc, item) => acc + item.price * item.quantity, 0);
+    };
+
+    return React.createElement("div", { className: "p-2" },
+        React.createElement("ul", null,
+            Object.entries(cartItems).map(([title, item]) => 
+                React.createElement("li", { key: title, className: "px-6 text-black flex justify-between items-center mb-2" },
+                    React.createElement("span", null, `${title} x ${item.quantity}`),
+                    React.createElement("button", { onClick: () => removeFromCart(title), className: "font-bold text-red-500" }, "x")
+                )
+            )
+        ),
+        React.createElement("div", { className: "flex justify-end mt-3" },
+            React.createElement("button", { 
+                onClick: () => alert("Proceeding to checkout"), 
+                className: "text-4xl text-black font-bold px-6" 
+            }, "Checkout")
+        ),
+        React.createElement("div", { className: "flex justify-end text-lg text-black px-6 mb-4" },
+            React.createElement("span", null, `Total: R${getTotalCost().toFixed(2)}`)
+        )
+    );
+};
+
+
+const Carousel = () => {
+    const [currentIndex, setCurrentIndex] = React.useState(0);
+    const [isChanging, setIsChanging] = React.useState(false);
+    const [showCart, setShowCart] = React.useState(false);
+    const [cartItems, setCartItems] = React.useState([]);
+    const [cartOpacity, setCartOpacity] = React.useState(0);
+    const [searchQuery, setSearchQuery] = React.useState("");
+    const startRef = React.useRef({ x: 0, y: 0 });
+
+    const handleWheel = (e) => {
+        e.preventDefault();
+        if (!isChanging) {
+            setIsChanging(true);
+            e.deltaY > 0 ? nextProduct() : prevProduct();
+            setTimeout(() => setIsChanging(false), 300);
+        }
+    };
+
+    const handleTouchStart = (e) => {
+        startRef.current.x = e.touches[0].clientX;
+        startRef.current.y = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+        e.preventDefault();
+        const diffX = startRef.current.x - e.touches[0].clientX;
+        const diffY = startRef.current.y - e.touches[0].clientY;
+
+        if (Math.abs(diffX) > Math.abs(diffY) && !isChanging) {
+            setIsChanging(true);
+            diffX > 0 ? nextProduct() : prevProduct();
+            setTimeout(() => setIsChanging(false), 300);
+        }
+    };
+
+    const nextProduct = () => {
+        setCurrentIndex((currentIndex + 1) % products.length);
+    };
+
+    const prevProduct = () => {
+        setCurrentIndex((currentIndex - 1 + products.length) % products.length);
+    };
+
+const addToCart = () => {
+    const itemTitle = products[currentIndex].title;
+    const totalUniqueItems = Object.keys(cartItems).length;
+
+    if (totalUniqueItems >= 5 && !cartItems[itemTitle]) {
+        alert("You can only add up to 5 different items to the cart.");
+        return;
+    }
+
+    setCartItems((prevItems) => {
+        const newItems = { ...prevItems };
+        if (newItems[itemTitle]) {
+            newItems[itemTitle].quantity += 1;
+        } else {
+            newItems[itemTitle] = { ...products[currentIndex], quantity: 1 };
+        }
+        return newItems;
+    });
+    setCartOpacity((prevOpacity) => Math.min(prevOpacity + 0.2, 100));
+};
+
+    const removeFromCart = (itemTitle) => {
+        setCartItems((prevItems) => {
+            const newItems = { ...prevItems };
+            if (newItems[itemTitle].quantity > 1) {
+                newItems[itemTitle].quantity -= 1;
+            } else {
+                delete newItems[itemTitle];
+            }
+            return newItems;
+        });
+        setCartOpacity((prevOpacity) => Math.max(prevOpacity - 0.2, 0));
+    };
+
+
+    const toggleCart = () => {
+        setShowCart(!showCart);
+    };
+
+    const getTotalItems = () => {
+        return Object.values(cartItems).reduce((acc, item) => acc + item.quantity, 0);
+    };
+
+    const filteredProducts = products.filter(product =>
+        product.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    React.useEffect(() => {
+        document.addEventListener('wheel', handleWheel, { passive: false });
+        document.addEventListener('touchstart', handleTouchStart, { passive: false });
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+        return () => {
+            document.removeEventListener('wheel', handleWheel);
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+        };
+    }, [isChanging]);
+
+return React.createElement("div", { className: "flex flex-col h-screen" },
+    React.createElement("header", { className: "flex justify-between items-center p-6 z-10" },
+        React.createElement("div", { className: "flex items-center" },
+            React.createElement("input", {
+                type: "text",
+                placeholder: "Catalogue",
+                className: "py-2 px-6 mr-1 rounded-full font-bold text-black placeholder-grey w-60 border-2 border-grey focus:border-black"
+            })
+        ),
+        React.createElement("div", {
+            className: "w-10 h-10 flex justify-center items-center text-black text-2xl cart-icon cursor-pointer",
+            onClick: toggleCart,
+            style: { opacity: cartOpacity }
+        },
+            React.createElement("i", { className: "fas fa-shopping-cart" }),
+            React.createElement("span", { className: "ml-2" }, getTotalItems())
+        )
+    ),
+    React.createElement("div", { className: "flex-grow flex justify-center items-center px-6 pb-6" },
+        React.createElement("div", { className: "bg-white rounded-3xl w-full h-full max-w-[96vw] max-h-[90vh] shadow-lg flex flex-col relative overflow-hidden text-black" },
+            React.createElement("div", { className: "absolute top-4 left-4 z-10" },
+            React.createElement("h2", {
+                className: "text-4xl font-bold mb-2 cursor-pointer",
+                onClick: addToCart
+            }, products[currentIndex].title),
+                React.createElement("p", { className: "text-1xl" }, products[currentIndex].specs)
+            ),
+            React.createElement("img", {
+                src: products[currentIndex].images[0],
+                alt: `${products[currentIndex].title} image`,
+                className: "absolute inset-0 w-full h-full object-cover",
+                width: "960",
+                height: "540"
+            }),
+            React.createElement("button", {
+                className: "absolute bottom-4 right-4 font-bold text-4xl bg-opacity-75 px-2 py-1 rounded",
+                onClick: addToCart
+            }, formatPrice(products[currentIndex].price))
+        )
+    ),
+    showCart && getTotalItems() > 0 && React.createElement(Cart, { cartItems, removeFromCart })
+  );
+};
+
+        const formatPrice = (price) => {
+            const [rands, cents] = price.toFixed(2).split('.');
+            return React.createElement("span", null,
+                "R",
+                rands,
+                React.createElement("span", { className: "price-cents" }, ".", cents)
+            );
+        };
+
+        ReactDOM.render(React.createElement(Carousel), document.getElementById('app'));
+    </script>
+</body>
+</html>
