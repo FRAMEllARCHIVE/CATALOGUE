@@ -36,23 +36,37 @@
 <body class="bg-custom-bg text-white min-h-screen flex flex-col">
     <div id="app"></div>
 
-    <script type="text/javascript">
-        const products = [
-            {
-                title: "Silver Ring",
-                specs: "Specs for product 1",
-                images: ["1.jpg"],
-                price: 1230.99,
-                UUID: 202412061742-862151901239123
-            },
-            {
-                title: "Gold Necklace",
-                specs: "Specs for product 4",
-                images: ["4.jpg"],
-                price: 1516.99,
-                UUID: 202412061942-1209571935913423
-            }
-        ];
+
+<script type="text/javascript">
+async function fetchAllProducts() {
+    const repoUrl = 'https://api.github.com/repos/tj-db/l/contents/';
+    let products = [];
+
+    try {
+        const response = await fetch(repoUrl);
+        const files = await response.json();
+
+        // Filter for JSON files without limiting the number
+        const jsonFiles = files.filter(file => file.name.endsWith('.json'));
+
+        // Fetch data for all JSON files
+        for (const file of jsonFiles) {
+            const fileResponse = await fetch(file.download_url);
+            const productData = await fileResponse.json();
+            products.push(productData);
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+    }
+
+    return products;
+}
+
+fetchAllProducts().then(fetchedProducts => {
+    window.products = fetchedProducts;
+    ReactDOM.render(React.createElement(Carousel), document.getElementById('app'));
+});
+
 
 const Cart = ({ cartItems, removeFromCart }) => {
     if (Object.keys(cartItems).length === 0) {
@@ -78,7 +92,7 @@ const Cart = ({ cartItems, removeFromCart }) => {
                 className: "text-4xl text-black font-bold px-6" 
             }, "Checkout")
         ),
-        React.createElement("div", { className: "flex justify-end text-lg text-black px-6 mb-4" },
+        React.createElement("div", { className: "flex justify-end text-lg text-black px-6 mb-14" },
             React.createElement("span", null, `Total: R${getTotalCost().toFixed(2)}`)
         )
     );
@@ -205,8 +219,8 @@ return React.createElement("div", { className: "flex flex-col h-screen" },
             React.createElement("span", { className: "ml-2" }, getTotalItems())
         )
     ),
-    React.createElement("div", { className: "flex-grow flex justify-center items-center px-6 pb-6" },
-        React.createElement("div", { className: "bg-white rounded-3xl w-full h-full max-w-[96vw] max-h-[90vh] shadow-lg flex flex-col relative overflow-hidden text-black" },
+    React.createElement("div", { className: "flex-grow flex justify-center items-start px-6" },
+        React.createElement("div", { className: "bg-white rounded-3xl w-full h-full max-w-[96vw] max-h-[77vh] mb-1 shadow-lg flex flex-col relative overflow-hidden text-black" },
             React.createElement("div", { className: "absolute top-4 left-4 z-10" },
             React.createElement("h2", {
                 className: "text-4xl font-bold mb-2 cursor-pointer",
