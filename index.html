@@ -377,7 +377,7 @@ document.querySelector('.share-icon').addEventListener('click', copylink);
 function copylink() {
     const product = products[currentIndex];
     const baseUrl = window.location.origin;
-    const searchUrl = `${baseUrl}#${encodeURIComponent(product.title)}`;
+    const searchUrl = `${baseUrl}/CATALOGUE/#${encodeURIComponent(product.title)}`;
 
 
     navigator.clipboard.writeText(searchUrl).then(() => {
