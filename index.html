@@ -83,19 +83,16 @@
     z-index: 2;
     width: 90%;
 }
-.heart-icon {
+.share-icon {
     position: absolute;
     top: 1.6rem;
     right: 1.6rem;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     color: white;
     cursor: pointer;
     z-index: 99;
     opacity: 0.4;
-    transition: opacity 0.3s ease;
-}
-.heart-icon:hover {
-    opacity: 0.9;
+    transition: opacity 1.3s ease;
 }
 .product-title {
     font-size: 1.9rem;
@@ -130,7 +127,6 @@
     top: -0.5rem;
     left: 0.2rem
 }
-
         .price-button {
             position: absolute;
             bottom: 1rem;
@@ -326,9 +322,8 @@
 </div>
 
 <div class="main-container">
-
     <div class="carousel-container" id="product-display">
-    <i class="fas fa-heart heart-icon"></i>
+    <i class="fas fa-share-alt share-icon"></i>
 <div class="product-text">
     <h2 class="product-title" id="product-title">Product Title</h2>
     <p class="product-specs" id="product-specs" style="display: none;">Product Specifications</p>
@@ -362,6 +357,12 @@
         </form>
     </div>
 </div>
+<div id="notification" style="display:none; position: fixed; bottom: 200px; left: 50%; transform: translateX(-50%); background-color: white; color: black; padding: 10px 20px; border-radius: 22px; font-size: 14px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.44);">
+  Link copied.
+</div>
+
+
+
 
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
@@ -371,27 +372,30 @@
 
 window.onload = function() {
 
-    document.querySelector('.heart-icon').addEventListener('click', copylink);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchTitle = urlParams.get('search');
-
-    if (searchTitle) {
-        const searchInput = document.getElementById('search');
-        searchInput.value = searchTitle;
-        const event = new Event('input', { bubbles: true });
-        searchInput.dispatchEvent(event);
-    }
+document.querySelector('.share-icon').addEventListener('click', copylink);
 
 function copylink() {
     const product = products[currentIndex];
     const baseUrl = window.location.origin;
-    const searchUrl = `${baseUrl}?search=${encodeURIComponent(product.title)}`;
+    const searchUrl = `${baseUrl}#${encodeURIComponent(product.title)}`;
+
 
     navigator.clipboard.writeText(searchUrl).then(() => {
-        console.log('Search link copied to clipboard:', searchUrl);
-        alert('LINK SAVED');
-        window.open(searchUrl, '_blank');
+
+        const shareIcon = document.querySelector('.share-icon');
+        shareIcon.style.opacity = 0.9;
+
+        setTimeout(() => {
+            shareIcon.style.opacity = 0.4;
+        }, 4444);
+
+        const notification = document.getElementById('notification');
+        notification.style.display = 'block';
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3333);
+
     }).catch(err => {
         console.error('Failed to copy the link:', err);
     });
@@ -711,7 +715,43 @@ function toggleCart() {
             nextProduct();
         }
     });
+
 fetchAllProducts();
+
+
+function performSearch(query) {
+    query = query.toLowerCase();
+
+    const searchInput = document.getElementById('search');
+    searchInput.value = query;
+
+    if (query === '') {
+        products = [...originalProducts];
+        currentIndex = 0;
+        displayProduct();
+    } else {
+        const filteredProducts = originalProducts.filter(product =>
+            product.title.toLowerCase().includes(query) ||
+            product.specs.toLowerCase().includes(query) ||
+            product.tags.some(tag => tag.toLowerCase().includes(query))
+        );
+
+        if (filteredProducts.length > 0) {
+            products = filteredProducts;
+            currentIndex = 0;
+            displayProduct();
+        }
+    }
+}
+
+const hash = window.location.hash.substring(1);
+if (hash) {
+    const decodedHash = decodeURIComponent(hash);
+    setTimeout(() => {
+        performSearch(decodedHash);
+    }, 1111);
+}
+
 };
     </script>
 </body>
